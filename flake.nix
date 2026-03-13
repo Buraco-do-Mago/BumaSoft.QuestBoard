@@ -1,5 +1,5 @@
 {
-  description = "TEMPLATE Flake";
+  description = "BumaSoft.QuestBoard flake";
 
   inputs = {
     nixpkgs.url = "github:nixos/nixpkgs?ref=nixpkgs-unstable";
@@ -23,18 +23,6 @@
 
         sdk = pkgs.dotnet-sdk_10;
         runtime = pkgs.dotnet-runtime_10;
-        aspnet = pkgs.dotnet-aspnetcore_10;
-
-        defaultPackages = with pkgs; [
-          sdk
-          runtime
-          aspnet
-          dotnet-ef
-          dbeaver-bin
-          rosetta.packages.${system}.default
-        ];
-
-        version = "0.0.0";
 
         buildPackage =
           {
@@ -43,6 +31,11 @@
           }:
           let
             projectPathString = builtins.replaceStrings [ "${toString ./.}/" ] [ "" ] (toString projectPath);
+            version = builtins.head (
+              builtins.match ".*<PropertyGroup>.*<Version>([^<]+)</Version>.*" (
+                builtins.replaceStrings [ "\n" ] [ " " ] (builtins.readFile projectPath)
+              )
+            );
           in
           pkgs.buildDotnetModule {
             pname = name;
@@ -51,27 +44,42 @@
             projectFile = projectPathString;
             nugetDeps = ./deps.nix;
             dotnet-sdk = sdk;
-            dotnet-runtime = aspnet;
+            dotnet-runtime = runtime;
+            buildPhase = ''
+              echo "Cleaning"
+              dotnet clean
+              echo "Restoring"
+              dotnet restore --no-cache
+              echo "Packing"
+              dotnet pack ${projectPathString} -c Release -o ./nupkgs --no-restore
+            '';
+            installPhase = ''
+              mkdir -p $out
+              cp ./nupkgs/*.nupkg $out/
+            '';
           };
       in
       with pkgs;
       {
-        devShells = {
-          default = mkShell {
-            buildInputs = defaultPackages;
-          };
+        devShells.default = mkShell {
+          buildInputs = [
+            sdk
+            runtime
+            dotnet-aspnetcore_10
+            rosetta.packages.${system}.default
+          ];
         };
-        packages = {
-          api = buildPackage {
-            name = "TEMPLATE.Api";
-            projectPath = ./src/TEMPLATE.Api/TEMPLATE.Api.csproj;
-          };
-          all = pkgs.symlinkJoin {
-            name = "TEMPLATE.All";
-            paths = [
-              self.packages.${system}.api
-            ];
-          };
+
+        packages.gamblingGoblin = buildPackage {
+          name = "BumaSoft.QuestBoard";
+          projectPath = ./src/BumaSoft.QuestBoard/BumaSoft.QuestBoard.csproj;
+        };
+
+        packages.all = pkgs.symlinkJoin {
+          name = "BumaSoft.QuestBoard.AllPackages";
+          paths = [
+            self.packages.${system}.gamblingGoblin
+          ];
         };
       }
     );
