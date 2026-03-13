@@ -1,0 +1,5 @@
+<Solution>
+  <Folder Name="/src/">
+    <Project Path="src/BumaSoft.QuestBoard/BumaSoft.QuestBoard.csproj" />
+  </Folder>
+</Solution>
