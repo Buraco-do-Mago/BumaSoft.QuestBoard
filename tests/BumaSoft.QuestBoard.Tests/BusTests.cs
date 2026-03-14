@@ -14,6 +14,8 @@ public class BusTests
         serviceProvider = new ServiceCollection()
             .AddScoped<IHandler<TestRequest, TestResponse>, TestHandler>()
             .AddScoped<IHandlerAsync<TestAsyncRequest, TestResponse>, TestAsyncHandler>()
+            .AddScoped<IHandler<TestVoidRequest>, TestVoidHandler>()
+            .AddScoped<IHandlerAsync<TestVoidAsyncRequest>, TestVoidAsyncHandler>()
             .AddScoped<Bus>()
             .BuildServiceProvider();
 
@@ -29,6 +31,59 @@ public class BusTests
         var response = await bus.SendAsync<TestRequest, TestResponse>(request);
 
         Assert.That(response.ResponseMessage, Is.EqualTo("Handled: Hello, Bus!"));
+    }
+
+    [Test]
+    public async Task Bus_ShouldSendMessageToRegisteredAsyncHandlerAsync()
+    {
+        var bus = scope.ServiceProvider.GetRequiredService<Bus>();
+
+        var request = new TestAsyncRequest { Message = "Hello, Async Bus!" };
+        var response = await bus.SendAsync<TestAsyncRequest, TestResponse>(request);
+
+        Assert.That(response.ResponseMessage, Is.EqualTo("Handled asynchronously: Hello, Async Bus!"));
+    }
+
+    [Test]
+    public async Task Bus_ShouldHandleVoidMessageWithRegisteredHandlerAsync()
+    {
+        var bus = scope.ServiceProvider.GetRequiredService<Bus>();
+
+        var request = new TestVoidAsyncRequest { Message = "Hello, Void Bus!" };
+
+        Assert.DoesNotThrowAsync(() => bus.SendAsync(request));
+    }
+
+    [Test]
+    public async Task Bus_ShouldHandleVoidMessageWithRegisteredHandler()
+    {
+        var bus = scope.ServiceProvider.GetRequiredService<Bus>();
+
+        var request = new TestVoidRequest { Message = "Hello, Void Bus!" };
+
+        Assert.DoesNotThrowAsync(() => bus.SendAsync(request));
+    }
+
+    [Test]
+    public async Task Bus_ShouldThrowException_WhenNoHandlerRegisteredAsync()
+    {
+        var bus = scope.ServiceProvider.GetRequiredService<Bus>();
+
+        var request = (object)new { Message = "Hello, No Handler!" };
+
+        var ex = Assert.ThrowsAsync<InvalidOperationException>(async () => await bus.SendAsync(request));
+        Assert.That(ex.Message, Does.Contain("No handler was registered for message 'Object'."));
+    }
+
+    [Test]
+    public async Task Bus_ShouldThrowException_WhenNoHandlerWithResponseRegisteredAsync()
+    {
+        var bus = scope.ServiceProvider.GetRequiredService<Bus>();
+
+        var request = (object)new { Message = "Hello, No Handler!" };
+
+        var ex = Assert.ThrowsAsync<InvalidOperationException>(async () => await bus.SendAsync<object, string>(request));
+        Assert.That(ex.Message, Does.Contain("No handler was registered for message 'Object' with response 'String'."));
     }
 
     [TearDown]
@@ -50,10 +105,7 @@ public class TestResponse
 
 public class TestHandler : IHandler<TestRequest, TestResponse>
 {
-    public TestResponse Handle(TestRequest message)
-    {
-        return new TestResponse { ResponseMessage = $"Handled: {message.Message}" };
-    }
+    public TestResponse Handle(TestRequest message) => new() { ResponseMessage = $"Handled: {message.Message}" };
 }
 
 public class TestAsyncRequest
@@ -67,5 +119,32 @@ public class TestAsyncHandler : IHandlerAsync<TestAsyncRequest, TestResponse>
     {
         await Task.Delay(100, cancellationToken);
         return new TestResponse { ResponseMessage = $"Handled asynchronously: {message.Message}" };
+    }
+}
+
+public class TestVoidRequest
+{
+    public required string Message { get; set; }
+}
+
+public class TestVoidHandler : IHandler<TestVoidRequest>
+{
+    public void Handle(TestVoidRequest message)
+    {
+        // Simulate handling the message
+    }
+}
+
+public class TestVoidAsyncRequest
+{
+    public required string Message { get; set; }
+}
+
+public class TestVoidAsyncHandler : IHandlerAsync<TestVoidAsyncRequest>
+{
+    public async Task Handle(TestVoidAsyncRequest message, CancellationToken cancellationToken = default)
+    {
+        // Simulate handling the message asynchronously
+        await Task.Delay(100, cancellationToken);
     }
 }
