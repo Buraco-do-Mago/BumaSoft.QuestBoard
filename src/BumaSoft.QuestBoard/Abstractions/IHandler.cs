@@ -12,10 +12,10 @@ public interface IHandler<TMessage>
 
 public interface IHandlerAsync<TMessage, TResponse>
 {
-    public Task<TResponse> Handle(TMessage message);
+    public Task<TResponse> Handle(TMessage message, CancellationToken cancellationToken = default);
 }
 
 public interface IHandlerAsync<TMessage>
 {
-    public Task Handle(TMessage message);
+    public Task Handle(TMessage message, CancellationToken cancellationToken = default);
 }
