@@ -6,29 +6,23 @@ namespace BumaSoft.QuestBoard.Tests;
 [TestFixture]
 public class BusTests
 {
+    private ServiceProvider serviceProvider;
     private IServiceScope scope;
 
     [OneTimeSetUp]
-    public void OneTimeSetUp()
-    {
-        var serviceProvider = new ServiceCollection()
+    public void OneTimeSetUp() =>
+        serviceProvider = new ServiceCollection()
             .AddScoped<IHandler<TestRequest, TestResponse>, TestHandler>()
-            .AddScoped<IHandlerAsync<TestRequest, TestResponse>, TestAsyncHandler>()
+            .AddScoped<IHandlerAsync<TestAsyncRequest, TestResponse>, TestAsyncHandler>()
             .AddScoped<Bus>()
             .BuildServiceProvider();
 
-        scope = serviceProvider.CreateScope();
-    }
+    [SetUp]
+    public void SetUp() => scope = serviceProvider.CreateScope();
 
     [Test]
     public async Task Bus_ShouldSendMessageToRegisteredHandlerAsync()
     {
-        var serviceProvider = new ServiceCollection()
-            .AddScoped<IHandler<TestRequest, TestResponse>, TestHandler>()
-            .AddScoped<Bus>()
-            .BuildServiceProvider();
-
-        using var scope = serviceProvider.CreateScope();
         var bus = scope.ServiceProvider.GetRequiredService<Bus>();
 
         var request = new TestRequest { Message = "Hello, Bus!" };
@@ -36,6 +30,12 @@ public class BusTests
 
         Assert.That(response.ResponseMessage, Is.EqualTo("Handled: Hello, Bus!"));
     }
+
+    [TearDown]
+    public void TearDown() => scope.Dispose();
+
+    [OneTimeTearDown]
+    public void OneTimeTearDown() => serviceProvider.Dispose();
 }
 
 public class TestRequest
@@ -56,9 +56,14 @@ public class TestHandler : IHandler<TestRequest, TestResponse>
     }
 }
 
-public class TestAsyncHandler : IHandlerAsync<TestRequest, TestResponse>
+public class TestAsyncRequest
 {
-    public async Task<TestResponse> Handle(TestRequest message, CancellationToken cancellationToken = default)
+    public required string Message { get; set; }
+}
+
+public class TestAsyncHandler : IHandlerAsync<TestAsyncRequest, TestResponse>
+{
+    public async Task<TestResponse> Handle(TestAsyncRequest message, CancellationToken cancellationToken = default)
     {
         await Task.Delay(100, cancellationToken);
         return new TestResponse { ResponseMessage = $"Handled asynchronously: {message.Message}" };
