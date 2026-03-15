@@ -4,7 +4,7 @@ using Microsoft.Extensions.DependencyInjection;
 
 namespace BumaSoft.QuestBoard.DependencyInjection;
 
-internal class QuestBoardConfiguration(IServiceCollection services)
+public class QuestBoardConfiguration(IServiceCollection services)
 {
     public QuestBoardConfiguration AddHandler<TMessage, THandler>()
         where THandler : class, IHandler<TMessage>
