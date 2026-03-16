@@ -1,9 +1,20 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFramework>net10.0</TargetFramework>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
+
+    <TargetFramework>net10.0</TargetFramework>
+    <PackageId>BumaSoft.QuestBoard</PackageId>
+    <Version>1.0.0</Version>
+    <Authors>Lucas Renato</Authors>
+    <Company>BumaSoft</Company>
+    <Description>Miniscule library to provide Mediator Pattern functionality. Post your quest on the board, let others handle it.</Description>
+    <PackageTags>mediator;commands;handlers;requests;async</PackageTags>
+    <PackageProjectUrl>https://github.com/Buraco-do-Mago/BumaSoft.QuestBoard</PackageProjectUrl>
+    <RepositoryUrl>https://github.com/Buraco-do-Mago/BumaSoft.QuestBoard</RepositoryUrl>
+    <RepositoryType>git</RepositoryType>
+    <PackageLicenseExpression>MIT</PackageLicenseExpression>
   </PropertyGroup>
 
   <ItemGroup>
