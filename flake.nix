@@ -70,7 +70,7 @@
           ];
         };
 
-        packages.gamblingGoblin = buildPackage {
+        packages.questBoard = buildPackage {
           name = "BumaSoft.QuestBoard";
           projectPath = ./src/BumaSoft.QuestBoard/BumaSoft.QuestBoard.csproj;
         };
@@ -78,7 +78,7 @@
         packages.all = pkgs.symlinkJoin {
           name = "BumaSoft.QuestBoard.AllPackages";
           paths = [
-            self.packages.${system}.gamblingGoblin
+            self.packages.${system}.questBoard
           ];
         };
       }
