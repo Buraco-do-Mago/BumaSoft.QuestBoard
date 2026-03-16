@@ -3,7 +3,7 @@ using BumaSoft.QuestBoard.Abstractions;
 
 namespace BumaSoft.QuestBoard;
 
-public class Bus(IServiceProvider serviceProvider)
+public class Bus(IServiceProvider serviceProvider) : IBus
 {
     public Task SendAsync<TMessage>(TMessage message, CancellationToken cancellationToken = default)
     {
