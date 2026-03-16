@@ -70,4 +70,20 @@ public class QuestBoardDependencyInjectionTests
             Assert.That(handler2, Is.Not.Null);
         }
     }
+
+    [Test]
+    public void QuestBoardDependencyInjection_ShouldUseCustomBus()
+    {
+        var services = new ServiceCollection();
+        services.AddQuestBoard(config => config.UseBus<FaultyBus>());
+        using var scope = services.BuildServiceProvider().CreateScope();
+        var faultyBus = scope.ServiceProvider.GetService<FaultyBus>();
+        Assert.That(faultyBus, Is.Not.Null);
+        Assert.ThrowsAsync<NotImplementedException>(async () => await faultyBus.SendAsync(""));
+        Assert.ThrowsAsync<NotImplementedException>(async () => await faultyBus.SendAsync<string, string>(""));
+        var busInterface = scope.ServiceProvider.GetService<IBus>();
+        Assert.That(busInterface, Is.Not.Null);
+        Assert.ThrowsAsync<NotImplementedException>(async () => await busInterface.SendAsync(""));
+        Assert.ThrowsAsync<NotImplementedException>(async () => await busInterface.SendAsync<string, string>(""));
+    }
 }
