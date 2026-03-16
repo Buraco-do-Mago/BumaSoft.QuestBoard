@@ -6,11 +6,11 @@ namespace BumaSoft.QuestBoard.DependencyInjection;
 
 public class QuestBoardConfiguration(IServiceCollection services)
 {
-    private Type busType = typeof(Bus);
+    public Type BusType { get; private set; } = typeof(Bus);
 
     public QuestBoardConfiguration UseBus<TBus>() where TBus : class, IBus
     {
-        busType = typeof(TBus);
+        BusType = typeof(TBus);
         return this;
     }
 
