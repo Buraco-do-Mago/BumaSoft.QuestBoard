@@ -16,6 +16,9 @@ public class QuestBoardDependencyInjectionTests
         using var scope = services.BuildServiceProvider().CreateScope();
         var bus = scope.ServiceProvider.GetService<Bus>();
         Assert.That(bus, Is.Not.Null);
+        var busInterface = scope.ServiceProvider.GetService<IBus>();
+        Assert.That(busInterface, Is.Not.Null);
+        Assert.That(busInterface, Is.SameAs(bus));
     }
 
     [Test]
