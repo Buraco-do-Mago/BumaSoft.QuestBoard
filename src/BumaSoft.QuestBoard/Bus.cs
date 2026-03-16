@@ -18,7 +18,7 @@ public class Bus(IServiceProvider serviceProvider)
             return Task.CompletedTask;
         }
 
-        throw new InvalidOperationException(GetHandlerNotFoundMessage(typeof(TMessage), typeof(IHandler<TMessage>)));
+        throw new InvalidOperationException(GetHandlerNotFoundMessage(typeof(TMessage)));
     }
 
     public Task<TResponse> SendAsync<TMessage, TResponse>(TMessage message, CancellationToken cancellationToken = default)
@@ -31,9 +31,9 @@ public class Bus(IServiceProvider serviceProvider)
         if (handler is not null)
             return Task.FromResult(handler.Handle(message));
 
-        throw new InvalidOperationException(GetHandlerNotFoundMessage(typeof(TMessage), typeof(IHandler<TMessage, TResponse>), typeof(TResponse)));
+        throw new InvalidOperationException(GetHandlerNotFoundMessage(typeof(TMessage), typeof(TResponse)));
     }
 
-    private static string GetHandlerNotFoundMessage(Type messageType, Type handlerType, Type? responseType = null) =>
+    private static string GetHandlerNotFoundMessage(Type messageType, Type? responseType = null) =>
         $"No handler was registered for message '{messageType.Name}'{(responseType is null ? string.Empty : $" with response '{responseType.Name}'")}. Did you forget to call AddQuestBoard() or register the handle?";
 }
